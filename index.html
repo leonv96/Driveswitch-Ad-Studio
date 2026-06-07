@@ -7,9 +7,8 @@
     <style>
         :root {
             --ds-blue: #A3C6ED;
-            --ds-black: #000000;
-            --ds-yellow: #F2B540;
-            --ds-green: #2ECC71;
+            --ds-black: #121212;
+            --ds-white: #ffffff;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -117,11 +116,11 @@
     <button class="btn" id="downloadBtn">Save Finished Advert</button>
 </div>
 
-<script>
+<script {nonce}>
     const canvas = document.getElementById('adCanvas');
     const ctx = canvas.getContext('2d');
     
-    // AutoTrader standard optimal desktop asset dimensions (4:3 aspect ratio)
+    // AutoTrader standard landscape target (4:3)
     canvas.width = 1024;
     canvas.height = 768;
 
@@ -156,7 +155,7 @@
     function drawAdvert() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // 1. Intelligent Crop/Center Calculation (Prevents Stretching)
+        // 1. Center Cropping Logic for AutoTrader Format
         if (userImage) {
             let imgRatio = userImage.width / userImage.height;
             let canvasRatio = canvas.width / canvas.height;
@@ -173,51 +172,65 @@
                 xOffset = 0;
                 yOffset = (canvas.height - renderHeight) / 2;
             }
-
             ctx.drawImage(userImage, xOffset, yOffset, renderWidth, renderHeight);
         } else {
             ctx.fillStyle = '#2c2c2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px sans-serif';
+            ctx.font = 'bold 24px system-ui, sans-serif';
+            ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
             ctx.fillText('Please upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // 2. Render Top Banner Element
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, 85);
+        // 2. Top Header Canvas (Driveswitch Dark Profile Theme)
+        ctx.fillStyle = '#121212';
+        ctx.fillRect(0, 0, canvas.width, 90);
 
-        ctx.fillStyle = '#2ECC71';
-        ctx.font = '900 18px sans-serif';
+        // Fixed Line-Height Spacing for the Side Badge
+        ctx.textBaseline = 'alphabetic';
         ctx.textAlign = 'left';
-        ctx.fillText('FINANCE', 25, 36);
-        ctx.fillText('EXAMPLE', 25, 60);
+        ctx.font = '900 18px system-ui, sans-serif';
+        
+        ctx.fillStyle = '#A3C6ED'; // Driveswitch Car Blue
+        ctx.fillText('FINANCE', 30, 38);
+        ctx.fillStyle = '#FFFFFF'; // Clean Accent White
+        ctx.fillText('EXAMPLE', 30, 64);
 
-        ctx.font = 'bold 30px sans-serif';
+        // Right-aligned Finance Metrics Sequence
+        ctx.textAlign = 'right';
+        let currentX = canvas.width - 30;
+
         let depAmt = depositInput.value;
         let mthAmt = monthlyInput.value;
 
-        // Perfect position metrics for layout clarity
-        ctx.fillStyle = '#F2B540';
-        ctx.fillText('£' + depAmt, 180, 54);
+        // Draw Right to Left to prevent overlapping layout collisions
+        ctx.font = 'bold 28px system-ui, sans-serif';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('DEPOSIT', 315, 54);
-        
-        ctx.fillStyle = '#F2B540';
-        ctx.fillText('£' + mthAmt, 490, 54);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('PER MONTH', 605, 54);
+        ctx.fillText('PER MONTH', currentX, 56);
+        currentX -= ctx.measureText('PER MONTH').width + 12;
 
-        // 3. Render Bottom Banner Element
+        ctx.fillStyle = '#A3C6ED';
+        ctx.fillText('£' + mthAmt, currentX, 56);
+        currentX -= ctx.measureText('£' + mthAmt).width + 35;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('DEPOSIT', currentX, 56);
+        currentX -= ctx.measureText('DEPOSIT').width + 12;
+
+        ctx.fillStyle = '#A3C6ED';
+        ctx.fillText('£' + depAmt, currentX, 56);
+
+        // 3. Bottom Row Setup (Matches Top Dark Palette Banner Style)
         if (toggleBottom.checked) {
-            ctx.fillStyle = '#A3C6ED'; // Driveswitch Accent Blue
+            ctx.fillStyle = '#121212';
             ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
 
-            ctx.fillStyle = '#F2B540'; // Yellow Highlight
-            ctx.font = '900 28px sans-serif';
+            ctx.fillStyle = '#A3C6ED'; // Driveswitch Identity Blue Accent Typography
+            ctx.font = '900 24px system-ui, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 28);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 37.5);
         }
     }
 
@@ -225,7 +238,7 @@
 
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
-        link.download = 'driveswitch-autotrader-advert.png';
+        link.download = 'driveswitch-ad.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     });
