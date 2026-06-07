@@ -54,6 +54,11 @@
             justify-content: space-between;
             align-items: center;
         }
+        .form-group.vertical {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
         label { font-size: 14px; font-weight: 500; color: #aeaeb2; }
         input[type="text"], input[type="file"] {
             background: #3a3a3c;
@@ -71,6 +76,12 @@
         }
         input[type="file"] { text-align: left; width: auto; border: none; background: transparent; padding: 0; }
         
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--ds-blue);
+            margin: 4px 0 8px 0;
+        }
+
         .preset-container {
             display: flex;
             flex-direction: column;
@@ -145,6 +156,11 @@
             <label>Per Month (£)</label>
             <input type="text" id="monthlyInput" placeholder="e.g. 636" inputmode="decimal" value="">
         </div>
+
+        <div class="form-group vertical">
+            <label>Finance Text Size</label>
+            <input type="range" id="headerFontSlider" min="24" max="52" value="38">
+        </div>
         
         <div class="form-group">
             <label>Show Bottom Banner</label>
@@ -157,9 +173,15 @@
             <button class="preset-btn" data-text="12 Months MOT & Fresh Service">🔧 12 Months MOT & Fresh Service</button>
         </div>
 
-        <div class="form-group" id="bottomTextField" style="display: none;">
-            <label>Custom Bottom Text</label>
-            <input type="text" id="bottomTextInput" placeholder="e.g. DRIVE AWAY TODAY" style="width:55%; text-align: left;" value="">
+        <div class="form-group" id="bottomTextField" style="display: none; flex-direction: column; gap: 10px; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Custom Bottom Text</label>
+                <input type="text" id="bottomTextInput" placeholder="e.g. DRIVE AWAY TODAY" style="width:55%; text-align: left;" value="">
+            </div>
+            <div class="form-group vertical" style="margin-top: 4px;">
+                <label>Banner Text Size</label>
+                <input type="range" id="bannerFontSlider" min="20" max="48" value="30">
+            </div>
         </div>
     </div>
     
@@ -187,209 +209,10 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const clearBtn = document.getElementById('clearBtn');
     const presetButtons = document.querySelectorAll('.preset-btn');
+    
+    // Sliders
+    const headerFontSlider = document.getElementById('headerFontSlider');
+    const bannerFontSlider = document.getElementById('bannerFontSlider');
 
     function formatNumberWithCommas(inputElement) {
-        let cursorPosition = inputElement.selectionStart;
-        let originalLength = inputElement.value.length;
-        
-        let cleanValue = inputElement.value.replace(/[^0-9.]/g, '');
-        
-        let parts = cleanValue.split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        
-        if (parts[1]) parts[1] = parts[1].substring(0, 2);
-        
-        inputElement.value = parts.join('.');
-        
-        let newLength = inputElement.value.length;
-        cursorPosition = cursorPosition + (newLength - originalLength);
-        inputElement.setSelectionRange(cursorPosition, cursorPosition);
-    }
-
-    [depositInput, monthlyInput].forEach(item => {
-        item.addEventListener('input', (e) => {
-            formatNumberWithCommas(e.target);
-            drawAdvert();
-        });
-    });
-
-    bottomTextInput.addEventListener('input', drawAdvert);
-    
-    toggleBottom.addEventListener('change', () => {
-        bottomTextField.style.display = toggleBottom.checked ? 'flex' : 'none';
-        drawAdvert();
-    });
-
-    presetButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const presetText = button.getAttribute('data-text');
-            bottomTextInput.value = presetText;
-            toggleBottom.checked = true;
-            bottomTextField.style.display = 'flex';
-            drawAdvert();
-        });
-    });
-
-    imageLoader.addEventListener('change', (e) => {
-        if(e.target.files.length === 0) return;
-        const reader = new FileReader();
-        reader.onload = function(event){
-            userImage = new Image();
-            userImage.onload = function(){
-                drawAdvert();
-            }
-            userImage.src = event.target.result;
-        }
-        reader.readAsDataURL(e.target.files[0]);
-    });
-
-    function drawAdvert() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        if (userImage) {
-            let imgRatio = userImage.width / userImage.height;
-            let canvasRatio = canvas.width / canvas.height;
-            let renderWidth, renderHeight, xOffset, yOffset;
-
-            if (imgRatio > canvasRatio) {
-                renderHeight = canvas.height;
-                renderWidth = userImage.width * (canvas.height / userImage.height);
-                xOffset = (canvas.width - renderWidth) / 2;
-                yOffset = 0;
-            } else {
-                renderWidth = canvas.width;
-                renderHeight = userImage.height * (canvas.width / userImage.width);
-                xOffset = 0;
-                yOffset = (canvas.height - renderHeight) / 2;
-            }
-            ctx.drawImage(userImage, xOffset, yOffset, renderWidth, renderHeight);
-        } else {
-            ctx.fillStyle = '#2c2c2e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 26px system-ui, sans-serif';
-            ctx.textBaseline = 'middle';
-            ctx.textAlign = 'center';
-            ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
-        }
-
-        // Top Header Base Frame
-        const headerHeight = 125;
-        ctx.fillStyle = '#121212';
-        ctx.fillRect(0, 0, canvas.width, headerHeight);
-
-        // Sidebar Brand Tag (Slightly left-shifted to create maximum width room)
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-        ctx.font = '900 26px system-ui, sans-serif';
-        
-        ctx.fillStyle = '#A3C6ED';
-        ctx.fillText('FINANCE', 25, (headerHeight / 2) - 16);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('EXAMPLE', 25, (headerHeight / 2) + 16);
-
-        // Figure Text Metrics Calculations (Increased font sizes to fill the banner)
-        ctx.font = 'bold 48px system-ui, sans-serif';
-        
-        let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
-        let depLabel = 'DEPOSIT';
-        let mthValue = monthlyInput.value.trim() !== '' ? '£' + monthlyInput.value : '£0';
-        let mthLabel = 'PER MONTH';
-
-        let wDepValue = ctx.measureText(depValue).width;
-        let wMthValue = ctx.measureText(mthValue).width;
-        
-        ctx.font = 'bold 32px system-ui, sans-serif';
-        let wDepLabel = ctx.measureText(depLabel).width;
-        let wMthLabel = ctx.measureText(mthLabel).width;
-
-        // Tightened spacing parameters to push elements right up against the perimeter edges
-        let gapInternal = 12;
-        let gapSection = 15;
-
-        let totalBlockWidth = wDepValue + gapInternal + wDepLabel + gapSection + wMthValue + gapInternal + wMthLabel;
-        
-        // Dynamic anchoring to push text right to the right-hand edge boundary safely
-        let startX = canvas.width - totalBlockWidth - 25; 
-
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'left';
-
-        // Print Deposit Value
-        ctx.font = 'bold 48px system-ui, sans-serif';
-        ctx.fillStyle = '#A3C6ED';
-        ctx.fillText(depValue, startX, headerHeight / 2);
-        startX += wDepValue + gapInternal;
-
-        // Print Deposit Label
-        ctx.font = 'bold 32px system-ui, sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(depLabel, startX, headerHeight / 2 + 2);
-        startX += wDepLabel + gapSection;
-
-        // Print Monthly Value
-        ctx.font = 'bold 48px system-ui, sans-serif';
-        ctx.fillStyle = '#A3C6ED';
-        ctx.fillText(mthValue, startX, headerHeight / 2);
-        startX += wMthValue + gapInternal;
-
-        // Print Monthly Label
-        ctx.font = 'bold 32px system-ui, sans-serif';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(mthLabel, startX, headerHeight / 2 + 2);
-
-        // Bottom Banner Layout Max-Size Engine
-        if (toggleBottom.checked && bottomTextInput.value.trim() !== '') {
-            const bottomHeight = 100;
-            ctx.fillStyle = '#121212';
-            ctx.fillRect(0, canvas.height - bottomHeight, canvas.width, bottomHeight);
-
-            ctx.fillStyle = '#A3C6ED';
-            ctx.font = '900 44px system-ui, sans-serif'; // Maximum text sizing threshold
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // Check for over-scaling text clip protection
-            let maxTxtWidth = canvas.width - 40;
-            let currentTxtWidth = ctx.measureText(bottomTextInput.value.toUpperCase()).width;
-            
-            if (currentTxtWidth > maxTxtWidth) {
-                // Graceful fallback auto-shrink ONLY if custom strings get dangerously long
-                ctx.font = '900 32px system-ui, sans-serif';
-            }
-            
-            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - (bottomHeight / 2));
-        }
-    }
-
-    clearBtn.addEventListener('click', () => {
-        userImage = null;
-        imageLoader.value = '';
-        depositInput.value = '';
-        monthlyInput.value = '';
-        toggleBottom.checked = false;
-        bottomTextField.style.display = 'none';
-        bottomTextInput.value = '';
-        drawAdvert();
-    });
-
-    drawAdvert();
-
-    downloadBtn.addEventListener('click', () => {
-        const imageURI = canvas.toDataURL('image/png');
-        const newWindow = window.open();
-        if (newWindow) {
-            newWindow.document.write(`<img src="${imageURI}" style="width:100%; height:auto;" alt="Driveswitch Advert">`);
-            newWindow.document.title = "Save Your Advert";
-            newWindow.document.body.style.margin = "0";
-            newWindow.document.body.style.background = "#121212";
-            newWindow.document.body.style.display = "flex";
-            newWindow.document.body.style.alignItems = "center";
-            newWindow.document.body.style.height = "100vh";
-        } else {
-            alert("Please allow pop-ups for this app to save images.");
-        }
-    });
-</script>
-</body>
-</html>
+        let cursorPosition =
