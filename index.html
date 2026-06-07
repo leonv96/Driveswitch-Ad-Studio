@@ -9,6 +9,7 @@
             --ds-blue: #A3C6ED;
             --ds-black: #121212;
             --ds-white: #ffffff;
+            --ds-gray: #2c2c2e;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -30,7 +31,7 @@
         .preview-wrapper {
             width: 100%;
             position: relative;
-            background: #2c2c2e;
+            background: var(--ds-gray);
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0,0,0,0.3);
@@ -41,50 +42,69 @@
             height: auto;
         }
         .panel {
-            background: #2c2c2e;
+            background: var(--ds-gray);
             padding: 16px;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
         .form-group {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        label { font-size: 14px; color: #aeaeb2; }
+        label { font-size: 14px; font-weight: 500; color: #aeaeb2; }
         input[type="text"], input[type="file"] {
             background: #3a3a3c;
-            border: none;
+            border: 1px solid #48484a;
             color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-align: right;
-            font-size: 14px;
-            width: 50%;
-        }
-        input[type="file"] { text-align: left; width: auto; }
-        .btn {
-            background: var(--ds-blue);
-            color: #000000;
-            border: none;
-            padding: 14px;
+            padding: 10px 12px;
             border-radius: 8px;
+            text-align: right;
+            font-size: 15px;
+            width: 50%;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: var(--ds-blue);
+        }
+        input[type="file"] { text-align: left; width: auto; border: none; background: transparent; padding: 0; }
+        
+        .button-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+        .btn {
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
             text-align: center;
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
+            transition: opacity 0.2s ease;
+        }
+        .btn:active { opacity: 0.8; }
+        
+        #downloadBtn {
+            background: var(--ds-blue);
+            color: #000000;
+            flex: 2; /* Makes the primary action button wider */
+        }
+        #clearBtn {
+            background: #3a3a3c;
+            color: #ff453a; /* iOS System Red for clear/destructive actions */
+            border: 1px solid #48484a;
+            flex: 1;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="margin:0; text-align:center;">Driveswitch Ad Studio</h2>
+    <h2 style="margin:0; text-align:center; font-weight: 700;">Driveswitch Ad Studio</h2>
     
     <div class="preview-wrapper">
         <canvas id="adCanvas"></canvas>
@@ -97,11 +117,11 @@
         </div>
         <div class="form-group">
             <label>Deposit (£)</label>
-            <input type="text" id="depositInput" value="0">
+            <input type="text" id="depositInput" placeholder="e.g. 1,500" value="">
         </div>
         <div class="form-group">
             <label>Per Month (£)</label>
-            <input type="text" id="monthlyInput" value="330.36">
+            <input type="text" id="monthlyInput" placeholder="e.g. 299" value="">
         </div>
         <div class="form-group">
             <label>Show Bottom Banner</label>
@@ -109,11 +129,14 @@
         </div>
         <div class="form-group" id="bottomTextField" style="display: none;">
             <label>Bottom Text</label>
-            <input type="text" id="bottomTextInput" value="FULLY PREPARED - DRIVE AWAY TODAY" style="width:65%;">
+            <input type="text" id="bottomTextInput" value="FULLY PREPARED - DRIVE AWAY TODAY" style="width:65%; text-align: left;">
         </div>
     </div>
     
-    <button class="btn" id="downloadBtn">Open Image to Save</button>
+    <div class="button-row">
+        <button class="btn" id="clearBtn">Clear All</button>
+        <button class="btn" id="downloadBtn">Open Image to Save</button>
+    </div>
 </div>
 
 <script>
@@ -132,6 +155,7 @@
     const bottomTextInput = document.getElementById('bottomTextInput');
     const bottomTextField = document.getElementById('bottomTextField');
     const downloadBtn = document.getElementById('downloadBtn');
+    const clearBtn = document.getElementById('clearBtn');
 
     [depositInput, monthlyInput, bottomTextInput].forEach(item => item.addEventListener('input', drawAdvert));
     toggleBottom.addEventListener('change', () => {
@@ -140,6 +164,7 @@
     });
 
     imageLoader.addEventListener('change', (e) => {
+        if(e.target.files.length === 0) return;
         const reader = new FileReader();
         reader.onload = function(event){
             userImage = new Image();
@@ -175,10 +200,10 @@
             ctx.fillStyle = '#2c2c2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px system-ui, sans-serif';
+            ctx.font = 'bold 26px system-ui, sans-serif';
             ctx.textBaseline = 'middle';
             ctx.textAlign = 'center';
-            ctx.fillText('Please upload a car photo...', canvas.width/2, canvas.height/2);
+            ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
         // Top Header
@@ -195,12 +220,12 @@
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText('EXAMPLE', 30, 57);
 
-        // Centralized Finance Metrics Text
+        // Financial Figure Math Strings
         ctx.font = 'bold 28px system-ui, sans-serif';
         
-        let depValue = '£' + depositInput.value;
+        let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
         let depLabel = 'DEPOSIT';
-        let mthValue = '£' + monthlyInput.value;
+        let mthValue = monthlyInput.value.trim() !== '' ? '£' + monthlyInput.value : '£0';
         let mthLabel = 'PER MONTH';
 
         let wDepValue = ctx.measureText(depValue).width;
@@ -245,9 +270,20 @@
         }
     }
 
+    // Reset Engine Function
+    clearBtn.addEventListener('click', () => {
+        userImage = null;
+        imageLoader.value = '';
+        depositInput.value = '';
+        monthlyInput.value = '';
+        toggleBottom.checked = false;
+        bottomTextField.style.display = 'none';
+        bottomTextInput.value = 'FULLY PREPARED - DRIVE AWAY TODAY';
+        drawAdvert();
+    });
+
     drawAdvert();
 
-    // iOS Friendly Photo Saving Engine
     downloadBtn.addEventListener('click', () => {
         const imageURI = canvas.toDataURL('image/png');
         const newWindow = window.open();
