@@ -273,23 +273,23 @@
             ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // Top Header Base (Expanded layout to support massive fonts safely)
+        // Top Header Base Frame
         const headerHeight = 125;
         ctx.fillStyle = '#121212';
         ctx.fillRect(0, 0, canvas.width, headerHeight);
 
-        // Sidebar Brand Tag (Ultra bold and prominent)
+        // Sidebar Brand Tag (Slightly left-shifted to create maximum width room)
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.font = '900 26px system-ui, sans-serif';
         
         ctx.fillStyle = '#A3C6ED';
-        ctx.fillText('FINANCE', 35, (headerHeight / 2) - 16);
+        ctx.fillText('FINANCE', 25, (headerHeight / 2) - 16);
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('EXAMPLE', 35, (headerHeight / 2) + 16);
+        ctx.fillText('EXAMPLE', 25, (headerHeight / 2) + 16);
 
-        // Render Values (Maximized sizing engine)
-        ctx.font = 'bold 44px system-ui, sans-serif';
+        // Figure Text Metrics Calculations (Increased font sizes to fill the banner)
+        ctx.font = 'bold 48px system-ui, sans-serif';
         
         let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
         let depLabel = 'DEPOSIT';
@@ -299,53 +299,65 @@
         let wDepValue = ctx.measureText(depValue).width;
         let wMthValue = ctx.measureText(mthValue).width;
         
-        // Use a slightly smaller font size for text labels to create visual hierarchy
-        ctx.font = 'bold 30px system-ui, sans-serif';
+        ctx.font = 'bold 32px system-ui, sans-serif';
         let wDepLabel = ctx.measureText(depLabel).width;
         let wMthLabel = ctx.measureText(mthLabel).width;
 
-        let gapInternal = 16;
-        let gapSection = 55;
+        // Tightened spacing parameters to push elements right up against the perimeter edges
+        let gapInternal = 12;
+        let gapSection = 15;
 
         let totalBlockWidth = wDepValue + gapInternal + wDepLabel + gapSection + wMthValue + gapInternal + wMthLabel;
-        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 110; 
+        
+        // Dynamic anchoring to push text right to the right-hand edge boundary safely
+        let startX = canvas.width - totalBlockWidth - 25; 
 
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
 
-        // Print Deposit value
-        ctx.font = 'bold 44px system-ui, sans-serif';
+        // Print Deposit Value
+        ctx.font = 'bold 48px system-ui, sans-serif';
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(depValue, startX, headerHeight / 2);
         startX += wDepValue + gapInternal;
 
-        // Print Deposit label
-        ctx.font = 'bold 30px system-ui, sans-serif';
+        // Print Deposit Label
+        ctx.font = 'bold 32px system-ui, sans-serif';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(depLabel, startX, headerHeight / 2 + 2); // subtle offset alignment
+        ctx.fillText(depLabel, startX, headerHeight / 2 + 2);
         startX += wDepLabel + gapSection;
 
-        // Print Per Month value
-        ctx.font = 'bold 44px system-ui, sans-serif';
+        // Print Monthly Value
+        ctx.font = 'bold 48px system-ui, sans-serif';
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(mthValue, startX, headerHeight / 2);
         startX += wMthValue + gapInternal;
 
-        // Print Per Month label
-        ctx.font = 'bold 30px system-ui, sans-serif';
+        // Print Monthly Label
+        ctx.font = 'bold 32px system-ui, sans-serif';
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(mthLabel, startX, headerHeight / 2 + 2);
 
-        // Bottom Banner Layout (Expanded to 100px for massive text pop)
+        // Bottom Banner Layout Max-Size Engine
         if (toggleBottom.checked && bottomTextInput.value.trim() !== '') {
             const bottomHeight = 100;
             ctx.fillStyle = '#121212';
             ctx.fillRect(0, canvas.height - bottomHeight, canvas.width, bottomHeight);
 
             ctx.fillStyle = '#A3C6ED';
-            ctx.font = '900 34px system-ui, sans-serif';
+            ctx.font = '900 44px system-ui, sans-serif'; // Maximum text sizing threshold
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            
+            // Check for over-scaling text clip protection
+            let maxTxtWidth = canvas.width - 40;
+            let currentTxtWidth = ctx.measureText(bottomTextInput.value.toUpperCase()).width;
+            
+            if (currentTxtWidth > maxTxtWidth) {
+                // Graceful fallback auto-shrink ONLY if custom strings get dangerously long
+                ctx.font = '900 32px system-ui, sans-serif';
+            }
+            
             ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - (bottomHeight / 2));
         }
     }
