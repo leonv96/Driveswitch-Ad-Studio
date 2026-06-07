@@ -54,6 +54,11 @@
             justify-content: space-between;
             align-items: center;
         }
+        .form-group.slider-block {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
         label { font-size: 14px; font-weight: 500; color: #aeaeb2; }
         input[type="text"], input[type="file"] {
             background: #3a3a3c;
@@ -71,7 +76,12 @@
         }
         input[type="file"] { text-align: left; width: auto; border: none; background: transparent; padding: 0; }
         
-        /* New Preset Buttons Styling */
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--ds-blue);
+            margin: 4px 0;
+        }
+
         .preset-container {
             display: flex;
             flex-direction: column;
@@ -146,6 +156,11 @@
             <label>Per Month (£)</label>
             <input type="text" id="monthlyInput" placeholder="e.g. 636" inputmode="decimal" value="">
         </div>
+
+        <div class="form-group slider-block">
+            <label>Finance Sizing (Top Bar)</label>
+            <input type="range" id="topSizeSlider" min="20" max="52" value="28">
+        </div>
         
         <div class="form-group">
             <label>Show Bottom Banner</label>
@@ -158,9 +173,15 @@
             <button class="preset-btn" data-text="12 Months MOT & Fresh Service">🔧 12 Months MOT & Fresh Service</button>
         </div>
 
-        <div class="form-group" id="bottomTextField" style="display: none;">
-            <label>Custom Bottom Text</label>
-            <input type="text" id="bottomTextInput" placeholder="e.g. DRIVE AWAY TODAY" style="width:55%; text-align: left;" value="">
+        <div class="form-group" id="bottomTextField" style="display: none; flex-direction: column; gap: 12px; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <label>Custom Bottom Text</label>
+                <input type="text" id="bottomTextInput" placeholder="e.g. DRIVE AWAY TODAY" style="width:55%; text-align: left;" value="">
+            </div>
+            <div class="form-group slider-block" style="width: 100%;">
+                <label>Banner Text Sizing (Bottom Bar)</label>
+                <input type="range" id="bottomSizeSlider" min="18" max="55" value="24">
+            </div>
         </div>
     </div>
     
@@ -188,6 +209,10 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const clearBtn = document.getElementById('clearBtn');
     const presetButtons = document.querySelectorAll('.preset-btn');
+    
+    // Size Slider DOM Connections
+    const topSizeSlider = document.getElementById('topSizeSlider');
+    const bottomSizeSlider = document.getElementById('bottomSizeSlider');
 
     function formatNumberWithCommas(inputElement) {
         let cursorPosition = inputElement.selectionStart;
@@ -215,13 +240,14 @@
     });
 
     bottomTextInput.addEventListener('input', drawAdvert);
+    topSizeSlider.addEventListener('input', drawAdvert);
+    bottomSizeSlider.addEventListener('input', drawAdvert);
     
     toggleBottom.addEventListener('change', () => {
         bottomTextField.style.display = toggleBottom.checked ? 'flex' : 'none';
         drawAdvert();
     });
 
-    // Preset Button Click Handlers
     presetButtons.forEach(button => {
         button.addEventListener('click', () => {
             const presetText = button.getAttribute('data-text');
@@ -275,22 +301,27 @@
             ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
+        // Get Top size configurations
+        const topFontSize = parseInt(topSizeSlider.value);
+        // Automatically scales the black border tracking layout height relative to user's selected text size
+        const headerHeight = Math.max(90, topFontSize * 2.3);
+
         // Top Header Base
         ctx.fillStyle = '#121212';
-        ctx.fillRect(0, 0, canvas.width, 90);
+        ctx.fillRect(0, 0, canvas.width, headerHeight);
 
-        // Sidebar Brand Tag
+        // Sidebar Brand Tag (Responsive tracking sizing context)
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-        ctx.font = '900 18px system-ui, sans-serif';
+        ctx.font = `900 ${Math.max(14, topFontSize * 0.65)}px system-ui, sans-serif`;
         
         ctx.fillStyle = '#A3C6ED';
-        ctx.fillText('FINANCE', 30, 33);
+        ctx.fillText('FINANCE', 30, (headerHeight / 2) - (topFontSize * 0.45));
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('EXAMPLE', 30, 57);
+        ctx.fillText('EXAMPLE', 30, (headerHeight / 2) + (topFontSize * 0.45));
 
-        // Render Values
-        ctx.font = 'bold 28px system-ui, sans-serif';
+        // Render Values configuration using custom text value engine
+        ctx.font = `bold ${topFontSize}px system-ui, sans-serif`;
         
         let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
         let depLabel = 'DEPOSIT';
@@ -298,44 +329,60 @@
         let mthLabel = 'PER MONTH';
 
         let wDepValue = ctx.measureText(depValue).width;
-        let wDepLabel = ctx.measureText(depLabel).width;
         let wMthValue = ctx.measureText(mthValue).width;
+        
+        // Minor labels scale along linearly with major configurations
+        ctx.font = `bold ${Math.max(14, topFontSize * 0.75)}px system-ui, sans-serif`;
+        let wDepLabel = ctx.measureText(depLabel).width;
         let wMthLabel = ctx.measureText(mthLabel).width;
 
-        let gapInternal = 12;
-        let gapSection = 45;
+        // Custom responsive padding factors to tightly pack components on maximum scales
+        let gapInternal = topFontSize * 0.4;
+        let gapSection = topFontSize * 1.1;
 
         let totalBlockWidth = wDepValue + gapInternal + wDepLabel + gapSection + wMthValue + gapInternal + wMthLabel;
-        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 60; 
+        
+        // Dynamically shifts starting positions rightward if users pump sizing to extreme levels
+        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 60;
+        if (startX < 220) { 
+            startX = canvas.width - totalBlockWidth - 30; // Border alignment fallback mode
+        }
 
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
 
+        ctx.font = `bold ${topFontSize}px system-ui, sans-serif`;
         ctx.fillStyle = '#A3C6ED';
-        ctx.fillText(depValue, startX, 45);
+        ctx.fillText(depValue, startX, headerHeight / 2);
         startX += wDepValue + gapInternal;
 
+        ctx.font = `bold ${Math.max(14, topFontSize * 0.75)}px system-ui, sans-serif`;
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(depLabel, startX, 45);
+        ctx.fillText(depLabel, startX, headerHeight / 2);
         startX += wDepLabel + gapSection;
 
+        ctx.font = `bold ${topFontSize}px system-ui, sans-serif`;
         ctx.fillStyle = '#A3C6ED';
-        ctx.fillText(mthValue, startX, 45);
+        ctx.fillText(mthValue, startX, headerHeight / 2);
         startX += wMthValue + gapInternal;
 
+        ctx.font = `bold ${Math.max(14, topFontSize * 0.75)}px system-ui, sans-serif`;
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(mthLabel, startX, 45);
+        ctx.fillText(mthLabel, startX, headerHeight / 2);
 
-        // Bottom Banner Layout
+        // Bottom Banner Layout Engine configuration
         if (toggleBottom.checked && bottomTextInput.value.trim() !== '') {
+            const bottomFontSize = parseInt(bottomSizeSlider.value);
+            const bottomHeight = Math.max(75, bottomFontSize * 2.3);
+
             ctx.fillStyle = '#121212';
-            ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
+            ctx.fillRect(0, canvas.height - bottomHeight, canvas.width, bottomHeight);
 
             ctx.fillStyle = '#A3C6ED';
-            ctx.font = '900 24px system-ui, sans-serif';
+            ctx.font = `900 ${bottomFontSize}px system-ui, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 37.5);
+            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - (bottomHeight / 2));
         }
     }
 
@@ -347,6 +394,8 @@
         toggleBottom.checked = false;
         bottomTextField.style.display = 'none';
         bottomTextInput.value = '';
+        topSizeSlider.value = 28; // Standard fallback reset
+        bottomSizeSlider.value = 24;
         drawAdvert();
     });
 
