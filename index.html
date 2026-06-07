@@ -28,7 +28,6 @@
             flex-direction: column;
             gap: 16px;
         }
-        /* Preview Canvas Styling */
         .preview-wrapper {
             width: 100%;
             position: relative;
@@ -42,7 +41,6 @@
             display: block;
             height: auto;
         }
-        /* Form Controls */
         .panel {
             background: #2c2c2e;
             padding: 16px;
@@ -68,7 +66,6 @@
             width: 50%;
         }
         input[type="file"] { text-align: left; width: auto; }
-        .toggle-group { display: flex; align-items: center; gap: 8px; }
         .btn {
             background: var(--ds-blue);
             color: #000000;
@@ -90,12 +87,10 @@
 <div class="container">
     <h2 style="margin:0; text-align:center;">Driveswitch Ad Studio</h2>
     
-    <!-- Canvas Preview Box -->
     <div class="preview-wrapper">
         <canvas id="adCanvas"></canvas>
     </div>
     
-    <!-- Controls Panel -->
     <div class="panel">
         <div class="form-group">
             <label>Select Car Photo</label>
@@ -126,13 +121,12 @@
     const canvas = document.getElementById('adCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Set native high-res canvas dimensions matching 4:3 aspect ratio
-    canvas.width = 1200;
-    canvas.height = 900;
+    // AutoTrader standard optimal desktop asset dimensions (4:3 aspect ratio)
+    canvas.width = 1024;
+    canvas.height = 768;
 
     let userImage = null;
 
-    // Inputs
     const imageLoader = document.getElementById('imageLoader');
     const depositInput = document.getElementById('depositInput');
     const monthlyInput = document.getElementById('monthlyInput');
@@ -141,7 +135,6 @@
     const bottomTextField = document.getElementById('bottomTextField');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Event listeners to redraw dynamically when you change text
     [depositInput, monthlyInput, bottomTextInput].forEach(item => item.addEventListener('input', drawAdvert));
     toggleBottom.addEventListener('change', () => {
         bottomTextField.style.display = toggleBottom.checked ? 'flex' : 'none';
@@ -163,70 +156,77 @@
     function drawAdvert() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // 1. Draw Central Car Image Box
+        // 1. Intelligent Crop/Center Calculation (Prevents Stretching)
         if (userImage) {
-            ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
+            let imgRatio = userImage.width / userImage.height;
+            let canvasRatio = canvas.width / canvas.height;
+            let renderWidth, renderHeight, xOffset, yOffset;
+
+            if (imgRatio > canvasRatio) {
+                renderHeight = canvas.height;
+                renderWidth = userImage.width * (canvas.height / userImage.height);
+                xOffset = (canvas.width - renderWidth) / 2;
+                yOffset = 0;
+            } else {
+                renderWidth = canvas.width;
+                renderHeight = userImage.height * (canvas.width / userImage.width);
+                xOffset = 0;
+                yOffset = (canvas.height - renderHeight) / 2;
+            }
+
+            ctx.drawImage(userImage, xOffset, yOffset, renderWidth, renderHeight);
         } else {
             ctx.fillStyle = '#2c2c2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 30px sans-serif';
+            ctx.font = 'bold 24px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Please upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // 2. Draw Top Finance Banner Row
+        // 2. Render Top Banner Element
         ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, canvas.width, 95);
+        ctx.fillRect(0, 0, canvas.width, 85);
 
-        // "FINANCE EXAMPLE" Flag block
         ctx.fillStyle = '#2ECC71';
-        ctx.font = 'black 22px sans-serif';
+        ctx.font = '900 18px sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText('FINANCE', 30, 42);
-        ctx.fillText('EXAMPLE', 30, 68);
+        ctx.fillText('FINANCE', 25, 36);
+        ctx.fillText('EXAMPLE', 25, 60);
 
-        // Price Text Compilation
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 36px sans-serif';
-        
+        ctx.font = 'bold 30px sans-serif';
         let depAmt = depositInput.value;
         let mthAmt = monthlyInput.value;
 
-        // Draw segmented text colors to perfectly match original image overlay layout
-        let startX = canvas.width / 2 - 150;
-        ctx.fillStyle = '#F2B540'; // Yellow Accent
-        ctx.fillText('£' + depAmt, startX, 60);
-        
+        // Perfect position metrics for layout clarity
+        ctx.fillStyle = '#F2B540';
+        ctx.fillText('£' + depAmt, 180, 54);
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(' DEPOSIT  ', startX + 160, 60);
+        ctx.fillText('DEPOSIT', 315, 54);
         
         ctx.fillStyle = '#F2B540';
-        ctx.fillText('£' + mthAmt, startX + 310, 60);
-        
+        ctx.fillText('£' + mthAmt, 490, 54);
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(' PER MONTH', startX + 480, 60);
+        ctx.fillText('PER MONTH', 605, 54);
 
-        // 3. Draw Optional Bottom Banner Row
+        // 3. Render Bottom Banner Element
         if (toggleBottom.checked) {
-            ctx.fillStyle = '#A3C6ED'; // Driveswitch Signature Blue Tone
-            ctx.fillRect(0, canvas.height - 85, canvas.width, 85);
+            ctx.fillStyle = '#A3C6ED'; // Driveswitch Accent Blue
+            ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
 
-            ctx.fillStyle = '#F2B540'; // High visibility contrast text
-            ctx.font = '900 32px sans-serif';
+            ctx.fillStyle = '#F2B540'; // Yellow Highlight
+            ctx.font = '900 28px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 32);
+            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 28);
         }
     }
 
-    // Initialize Blank Canvas
     drawAdvert();
 
-    // Download processing trigger
     downloadBtn.addEventListener('click', () => {
         const link = document.createElement('a');
-        link.download = 'driveswitch-advert.png';
-        link.href = canvas.toDataURL();
+        link.download = 'driveswitch-autotrader-advert.png';
+        link.href = canvas.toDataURL('image/png');
         link.click();
     });
 </script>
