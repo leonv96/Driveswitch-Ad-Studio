@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Driveswitch Ad Studio</title>
+    <style>
+        :root {
+            --ds-blue: #A3C6ED;
+            --ds-black: #000000;
+            --ds-yellow: #F2B540;
+            --ds-green: #2ECC71;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #1c1c1e;
+            color: #ffffff;
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        /* Preview Canvas Styling */
+        .preview-wrapper {
+            width: 100%;
+            position: relative;
+            background: #2c2c2e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        canvas {
+            width: 100%;
+            display: block;
+            height: auto;
+        }
+        /* Form Controls */
+        .panel {
+            background: #2c2c2e;
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label { font-size: 14px; color: #aeaeb2; }
+        input[type="text"], input[type="file"] {
+            background: #3a3a3c;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: right;
+            font-size: 14px;
+            width: 50%;
+        }
+        input[type="file"] { text-align: left; width: auto; }
+        .toggle-group { display: flex; align-items: center; gap: 8px; }
+        .btn {
+            background: var(--ds-blue);
+            color: #000000;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin:0; text-align:center;">Driveswitch Ad Studio</h2>
+    
+    <!-- Canvas Preview Box -->
+    <div class="preview-wrapper">
+        <canvas id="adCanvas"></canvas>
+    </div>
+    
+    <!-- Controls Panel -->
+    <div class="panel">
+        <div class="form-group">
+            <label>Select Car Photo</label>
+            <input type="file" id="imageLoader" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label>Deposit (£)</label>
+            <input type="text" id="depositInput" value="10,000">
+        </div>
+        <div class="form-group">
+            <label>Per Month (£)</label>
+            <input type="text" id="monthlyInput" value="636">
+        </div>
+        <div class="form-group">
+            <label>Show Bottom Banner</label>
+            <input type="checkbox" id="toggleBottom" checked style="transform: scale(1.3);">
+        </div>
+        <div class="form-group" id="bottomTextField">
+            <label>Bottom Text</label>
+            <input type="text" id="bottomTextInput" value="FULLY PREPARED - DRIVE AWAY TODAY" style="width:65%;">
+        </div>
+    </div>
+    
+    <button class="btn" id="downloadBtn">Save Finished Advert</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('adCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set native high-res canvas dimensions matching 4:3 aspect ratio
+    canvas.width = 1200;
+    canvas.height = 900;
+
+    let userImage = null;
+
+    // Inputs
+    const imageLoader = document.getElementById('imageLoader');
+    const depositInput = document.getElementById('depositInput');
+    const monthlyInput = document.getElementById('monthlyInput');
+    const toggleBottom = document.getElementById('toggleBottom');
+    const bottomTextInput = document.getElementById('bottomTextInput');
+    const bottomTextField = document.getElementById('bottomTextField');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Event listeners to redraw dynamically when you change text
+    [depositInput, monthlyInput, bottomTextInput].forEach(item => item.addEventListener('input', drawAdvert));
+    toggleBottom.addEventListener('change', () => {
+        bottomTextField.style.display = toggleBottom.checked ? 'flex' : 'none';
+        drawAdvert();
+    });
+
+    imageLoader.addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = function(event){
+            userImage = new Image();
+            userImage.onload = function(){
+                drawAdvert();
+            }
+            userImage.src = event.target.result;
+        }
+        reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function drawAdvert() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. Draw Central Car Image Box
+        if (userImage) {
+            ctx.drawImage(userImage, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = '#2c2c2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Please upload a car photo...', canvas.width/2, canvas.height/2);
+        }
+
+        // 2. Draw Top Finance Banner Row
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, 95);
+
+        // "FINANCE EXAMPLE" Flag block
+        ctx.fillStyle = '#2ECC71';
+        ctx.font = 'black 22px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('FINANCE', 30, 42);
+        ctx.fillText('EXAMPLE', 30, 68);
+
+        // Price Text Compilation
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 36px sans-serif';
+        
+        let depAmt = depositInput.value;
+        let mthAmt = monthlyInput.value;
+
+        // Draw segmented text colors to perfectly match original image overlay layout
+        let startX = canvas.width / 2 - 150;
+        ctx.fillStyle = '#F2B540'; // Yellow Accent
+        ctx.fillText('£' + depAmt, startX, 60);
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(' DEPOSIT  ', startX + 160, 60);
+        
+        ctx.fillStyle = '#F2B540';
+        ctx.fillText('£' + mthAmt, startX + 310, 60);
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText(' PER MONTH', startX + 480, 60);
+
+        // 3. Draw Optional Bottom Banner Row
+        if (toggleBottom.checked) {
+            ctx.fillStyle = '#A3C6ED'; // Driveswitch Signature Blue Tone
+            ctx.fillRect(0, canvas.height - 85, canvas.width, 85);
+
+            ctx.fillStyle = '#F2B540'; // High visibility contrast text
+            ctx.font = '900 32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - 32);
+        }
+    }
+
+    // Initialize Blank Canvas
+    drawAdvert();
+
+    // Download processing trigger
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'driveswitch-advert.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+</script>
+</body>
+</html>
