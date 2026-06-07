@@ -273,23 +273,23 @@
             ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // Top Header Base (Increased to 105px height to support larger fonts safely)
-        const headerHeight = 105;
+        // Top Header Base (Expanded layout to support massive fonts safely)
+        const headerHeight = 125;
         ctx.fillStyle = '#121212';
         ctx.fillRect(0, 0, canvas.width, headerHeight);
 
-        // Sidebar Brand Tag (Bigger & Re-centered)
+        // Sidebar Brand Tag (Ultra bold and prominent)
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
-        ctx.font = '900 22px system-ui, sans-serif';
+        ctx.font = '900 26px system-ui, sans-serif';
         
         ctx.fillStyle = '#A3C6ED';
-        ctx.fillText('FINANCE', 35, (headerHeight / 2) - 14);
+        ctx.fillText('FINANCE', 35, (headerHeight / 2) - 16);
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText('EXAMPLE', 35, (headerHeight / 2) + 14);
+        ctx.fillText('EXAMPLE', 35, (headerHeight / 2) + 16);
 
-        // Render Values (Bigger Text Updates)
-        ctx.font = 'bold 34px system-ui, sans-serif';
+        // Render Values (Maximized sizing engine)
+        ctx.font = 'bold 44px system-ui, sans-serif';
         
         let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
         let depLabel = 'DEPOSIT';
@@ -297,42 +297,53 @@
         let mthLabel = 'PER MONTH';
 
         let wDepValue = ctx.measureText(depValue).width;
-        let wDepLabel = ctx.measureText(depLabel).width;
         let wMthValue = ctx.measureText(mthValue).width;
+        
+        // Use a slightly smaller font size for text labels to create visual hierarchy
+        ctx.font = 'bold 30px system-ui, sans-serif';
+        let wDepLabel = ctx.measureText(depLabel).width;
         let wMthLabel = ctx.measureText(mthLabel).width;
 
-        let gapInternal = 14;
-        let gapSection = 50;
+        let gapInternal = 16;
+        let gapSection = 55;
 
         let totalBlockWidth = wDepValue + gapInternal + wDepLabel + gapSection + wMthValue + gapInternal + wMthLabel;
-        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 90; 
+        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 110; 
 
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
 
+        // Print Deposit value
+        ctx.font = 'bold 44px system-ui, sans-serif';
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(depValue, startX, headerHeight / 2);
         startX += wDepValue + gapInternal;
 
+        // Print Deposit label
+        ctx.font = 'bold 30px system-ui, sans-serif';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(depLabel, startX, headerHeight / 2);
+        ctx.fillText(depLabel, startX, headerHeight / 2 + 2); // subtle offset alignment
         startX += wDepLabel + gapSection;
 
+        // Print Per Month value
+        ctx.font = 'bold 44px system-ui, sans-serif';
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(mthValue, startX, headerHeight / 2);
         startX += wMthValue + gapInternal;
 
+        // Print Per Month label
+        ctx.font = 'bold 30px system-ui, sans-serif';
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillText(mthLabel, startX, headerHeight / 2);
+        ctx.fillText(mthLabel, startX, headerHeight / 2 + 2);
 
-        // Bottom Banner Layout (Increased to 85px to support bigger text cleanly)
+        // Bottom Banner Layout (Expanded to 100px for massive text pop)
         if (toggleBottom.checked && bottomTextInput.value.trim() !== '') {
-            const bottomHeight = 85;
+            const bottomHeight = 100;
             ctx.fillStyle = '#121212';
             ctx.fillRect(0, canvas.height - bottomHeight, canvas.width, bottomHeight);
 
             ctx.fillStyle = '#A3C6ED';
-            ctx.font = '900 28px system-ui, sans-serif';
+            ctx.font = '900 34px system-ui, sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(bottomTextInput.value.toUpperCase(), canvas.width / 2, canvas.height - (bottomHeight / 2));
