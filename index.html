@@ -91,11 +91,11 @@
         #downloadBtn {
             background: var(--ds-blue);
             color: #000000;
-            flex: 2; /* Makes the primary action button wider */
+            flex: 2;
         }
         #clearBtn {
             background: #3a3a3c;
-            color: #ff453a; /* iOS System Red for clear/destructive actions */
+            color: #ff453a;
             border: 1px solid #48484a;
             flex: 1;
         }
@@ -117,11 +117,11 @@
         </div>
         <div class="form-group">
             <label>Deposit (£)</label>
-            <input type="text" id="depositInput" placeholder="e.g. 1,500" value="">
+            <input type="text" id="depositInput" placeholder="e.g. 10,000" inputmode="numeric" value="">
         </div>
         <div class="form-group">
             <label>Per Month (£)</label>
-            <input type="text" id="monthlyInput" placeholder="e.g. 299" value="">
+            <input type="text" id="monthlyInput" placeholder="e.g. 636" inputmode="decimal" value="">
         </div>
         <div class="form-group">
             <label>Show Bottom Banner</label>
@@ -157,7 +157,38 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    [depositInput, monthlyInput, bottomTextInput].forEach(item => item.addEventListener('input', drawAdvert));
+    // Live Comma Formatter Engine
+    function formatNumberWithCommas(inputElement) {
+        let cursorPosition = inputElement.selectionStart;
+        let originalLength = inputElement.value.length;
+        
+        // Strip out anything that isn't a digit or a single decimal point
+        let cleanValue = inputElement.value.replace(/[^0-9.]/g, '');
+        
+        // Handle split to protect decimal points (e.g., pence like .36)
+        let parts = cleanValue.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        
+        // Limit to 2 decimal places maximum for clean look
+        if (parts[1]) parts[1] = parts[1].substring(0, 2);
+        
+        inputElement.value = parts.join('.');
+        
+        // Recalculate iOS mobile cursor mapping so it doesn't jump around while typing
+        let newLength = inputElement.value.length;
+        cursorPosition = cursorPosition + (newLength - originalLength);
+        inputElement.setSelectionRange(cursorPosition, cursorPosition);
+    }
+
+    [depositInput, monthlyInput].forEach(item => {
+        item.addEventListener('input', (e) => {
+            formatNumberWithCommas(e.target);
+            drawAdvert();
+        });
+    });
+
+    bottomTextInput.addEventListener('input', drawAdvert);
+    
     toggleBottom.addEventListener('change', () => {
         bottomTextField.style.display = toggleBottom.checked ? 'flex' : 'none';
         drawAdvert();
@@ -206,11 +237,11 @@
             ctx.fillText('Tap below to upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // Top Header
+        // Top Header Base
         ctx.fillStyle = '#121212';
         ctx.fillRect(0, 0, canvas.width, 90);
 
-        // Sidebar Branding
+        // Sidebar Brand Tag
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.font = '900 18px system-ui, sans-serif';
@@ -220,7 +251,7 @@
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText('EXAMPLE', 30, 57);
 
-        // Financial Figure Math Strings
+        // Render Values
         ctx.font = 'bold 28px system-ui, sans-serif';
         
         let depValue = depositInput.value.trim() !== '' ? '£' + depositInput.value : '£0';
@@ -270,7 +301,6 @@
         }
     }
 
-    // Reset Engine Function
     clearBtn.addEventListener('click', () => {
         userImage = null;
         imageLoader.value = '';
