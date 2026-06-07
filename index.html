@@ -105,7 +105,7 @@
         </div>
         <div class="form-group">
             <label>Show Bottom Banner</label>
-            <input type="checkbox" id="toggleBottom" unverified style="transform: scale(1.3);">
+            <input type="checkbox" id="toggleBottom" style="transform: scale(1.3);">
         </div>
         <div class="form-group" id="bottomTextField" style="display: none;">
             <label>Bottom Text</label>
@@ -113,7 +113,7 @@
         </div>
     </div>
     
-    <button class="btn" id="downloadBtn">Save Finished Advert</button>
+    <button class="btn" id="downloadBtn">Open Image to Save</button>
 </div>
 
 <script>
@@ -181,11 +181,11 @@
             ctx.fillText('Please upload a car photo...', canvas.width/2, canvas.height/2);
         }
 
-        // Top Header Base
+        // Top Header
         ctx.fillStyle = '#121212';
         ctx.fillRect(0, 0, canvas.width, 90);
 
-        // Sidebar Branding Stay Left-Aligned
+        // Sidebar Branding
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         ctx.font = '900 18px system-ui, sans-serif';
@@ -195,7 +195,7 @@
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText('EXAMPLE', 30, 57);
 
-        // --- NEW CENTRALIZED ENGINE ---
+        // Centralized Finance Metrics Text
         ctx.font = 'bold 28px system-ui, sans-serif';
         
         let depValue = '£' + depositInput.value;
@@ -203,47 +203,36 @@
         let mthValue = '£' + monthlyInput.value;
         let mthLabel = 'PER MONTH';
 
-        // Measure text chunks to calculate exact spacing strings
         let wDepValue = ctx.measureText(depValue).width;
         let wDepLabel = ctx.measureText(depLabel).width;
         let wMthValue = ctx.measureText(mthValue).width;
         let wMthLabel = ctx.measureText(mthLabel).width;
 
-        let gapInternal = 12;  // Gap between the price and its label
-        let gapSection = 45;   // Gap separating the deposit group from monthly group
+        let gapInternal = 12;
+        let gapSection = 45;
 
-        // Total block footprint calculation
         let totalBlockWidth = wDepValue + gapInternal + wDepLabel + gapSection + wMthValue + gapInternal + wMthLabel;
-        
-        // Compute the starting horizontal position to perfectly target absolute center
-        let startX = (canvas.width / 2) - (totalBlockWidth / 2);
-        // Offset slightly to the right to account for the left badge area
-        startX += 60; 
+        let startX = (canvas.width / 2) - (totalBlockWidth / 2) + 60; 
 
-        // Draw Sequence (Left to Right)
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
 
-        // 1. Deposit Value
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(depValue, startX, 45);
         startX += wDepValue + gapInternal;
 
-        // 2. Deposit Label
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(depLabel, startX, 45);
         startX += wDepLabel + gapSection;
 
-        // 3. Monthly Value
         ctx.fillStyle = '#A3C6ED';
         ctx.fillText(mthValue, startX, 45);
         startX += wMthValue + gapInternal;
 
-        // 4. Monthly Label
         ctx.fillStyle = '#FFFFFF';
         ctx.fillText(mthLabel, startX, 45);
 
-        // Bottom Banner Elements
+        // Bottom Banner
         if (toggleBottom.checked) {
             ctx.fillStyle = '#121212';
             ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
@@ -258,11 +247,21 @@
 
     drawAdvert();
 
+    // iOS Friendly Photo Saving Engine
     downloadBtn.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = 'driveswitch-ad.png';
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+        const imageURI = canvas.toDataURL('image/png');
+        const newWindow = window.open();
+        if (newWindow) {
+            newWindow.document.write(`<img src="${imageURI}" style="width:100%; height:auto;" alt="Driveswitch Advert">`);
+            newWindow.document.title = "Save Your Advert";
+            newWindow.document.body.style.margin = "0";
+            newWindow.document.body.style.background = "#121212";
+            newWindow.document.body.style.display = "flex";
+            newWindow.document.body.style.alignItems = "center";
+            newWindow.document.body.style.height = "100vh";
+        } else {
+            alert("Please allow pop-ups for this app to save images.");
+        }
     });
 </script>
 </body>
