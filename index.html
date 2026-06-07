@@ -129,7 +129,7 @@
         </div>
         <div class="form-group" id="bottomTextField" style="display: none;">
             <label>Bottom Text</label>
-            <input type="text" id="bottomTextInput" value="FULLY PREPARED - DRIVE AWAY TODAY" style="width:65%; text-align: left;">
+            <input type="text" id="bottomTextInput" placeholder="e.g. DRIVE AWAY TODAY" style="width:65%; text-align: left;" value="">
         </div>
     </div>
     
@@ -157,24 +157,19 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const clearBtn = document.getElementById('clearBtn');
 
-    // Live Comma Formatter Engine
     function formatNumberWithCommas(inputElement) {
         let cursorPosition = inputElement.selectionStart;
         let originalLength = inputElement.value.length;
         
-        // Strip out anything that isn't a digit or a single decimal point
         let cleanValue = inputElement.value.replace(/[^0-9.]/g, '');
         
-        // Handle split to protect decimal points (e.g., pence like .36)
         let parts = cleanValue.split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         
-        // Limit to 2 decimal places maximum for clean look
         if (parts[1]) parts[1] = parts[1].substring(0, 2);
         
         inputElement.value = parts.join('.');
         
-        // Recalculate iOS mobile cursor mapping so it doesn't jump around while typing
         let newLength = inputElement.value.length;
         cursorPosition = cursorPosition + (newLength - originalLength);
         inputElement.setSelectionRange(cursorPosition, cursorPosition);
@@ -289,7 +284,7 @@
         ctx.fillText(mthLabel, startX, 45);
 
         // Bottom Banner
-        if (toggleBottom.checked) {
+        if (toggleBottom.checked && bottomTextInput.value.trim() !== '') {
             ctx.fillStyle = '#121212';
             ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
 
@@ -308,7 +303,7 @@
         monthlyInput.value = '';
         toggleBottom.checked = false;
         bottomTextField.style.display = 'none';
-        bottomTextInput.value = 'FULLY PREPARED - DRIVE AWAY TODAY';
+        bottomTextInput.value = ''; // Fully empty on clear
         drawAdvert();
     });
 
